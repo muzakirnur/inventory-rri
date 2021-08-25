@@ -1,43 +1,47 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Admin extends CI_Controller{
+class Admin extends CI_Controller
+{
 
-  public function __construct(){
-		parent::__construct();
+  public function __construct()
+  {
+    parent::__construct();
     $this->load->model('M_admin');
     $this->load->library('upload');
-	}
+  }
 
-  public function index(){
-    if($this->session->userdata('status') == 'login' && $this->session->userdata('role') == 1){
-      $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-      $data['stokPro1'] = $this->M_admin->sum('tb_pro1','jumlah');
-      $data['stokPro2'] = $this->M_admin->sum('tb_pro2','jumlah');    
-      $data['stokMP'] = $this->M_admin->sum('tb_mp','jumlah'); 
-      $data['stokRekaman'] = $this->M_admin->sum('tb_rekaman','jumlah');   
+  public function index()
+  {
+    if ($this->session->userdata('status') == 'login' && $this->session->userdata('role') == 1) {
+      $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+      $data['stokPro1'] = $this->M_admin->sum('tb_pro1', 'jumlah');
+      $data['stokPro2'] = $this->M_admin->sum('tb_pro2', 'jumlah');
+      $data['stokMP'] = $this->M_admin->sum('tb_mp', 'jumlah');
+      $data['stokRekaman'] = $this->M_admin->sum('tb_rekaman', 'jumlah');
       $data['dataUser'] = $this->M_admin->numrows('user');
-      $this->load->view('admin/index',$data);
-    }else {
+      $this->load->view('admin/index', $data);
+    } else {
       $this->load->view('login/login');
     }
   }
 
-  public function sigout(){
+  public function sigout()
+  {
     session_destroy();
     redirect('login');
   }
 
   ####################################
-              // Profile
+  // Profile
   ####################################
 
   public function profile()
   {
     $data['token_generate'] = $this->token_generate();
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
     $this->session->set_userdata($data);
-    $this->load->view('admin/profile',$data);
+    $this->load->view('admin/profile', $data);
   }
 
   public function token_generate()
@@ -47,38 +51,36 @@ class Admin extends CI_Controller{
 
   private function hash_password($password)
   {
-    return password_hash($password,PASSWORD_DEFAULT);
+    return password_hash($password, PASSWORD_DEFAULT);
   }
 
   public function proses_new_password()
   {
-    $this->form_validation->set_rules('email','Email','required');
-    $this->form_validation->set_rules('new_password','New Password','required');
-    $this->form_validation->set_rules('confirm_new_password','Confirm New Password','required|matches[new_password]');
+    $this->form_validation->set_rules('email', 'Email', 'required');
+    $this->form_validation->set_rules('new_password', 'New Password', 'required');
+    $this->form_validation->set_rules('confirm_new_password', 'Confirm New Password', 'required|matches[new_password]');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      if($this->session->userdata('token_generate') === $this->input->post('token'))
-      {
+    if ($this->form_validation->run() == TRUE) {
+      if ($this->session->userdata('token_generate') === $this->input->post('token')) {
         $username = $this->input->post('username');
         $email = $this->input->post('email');
         $new_password = $this->input->post('new_password');
 
         $data = array(
-            'email'    => $email,
-            'password' => $this->hash_password($new_password)
+          'email'    => $email,
+          'password' => $this->hash_password($new_password)
         );
 
         $where = array(
-            'id' =>$this->session->userdata('id')
+          'id' => $this->session->userdata('id')
         );
 
-        $this->M_admin->update_password('user',$where,$data);
+        $this->M_admin->update_password('user', $where, $data);
 
-        $this->session->set_flashdata('msg_berhasil','Password Telah Diganti');
+        $this->session->set_flashdata('msg_berhasil', 'Password Telah Diganti');
         redirect(base_url('admin/profile'));
       }
-    }else {
+    } else {
       $this->load->view('admin/profile');
     }
   }
@@ -86,81 +88,79 @@ class Admin extends CI_Controller{
   public function proses_gambar_upload()
   {
     $config =  array(
-                   'upload_path'     => "./assets/upload/user/img/",
-                   'allowed_types'   => "gif|jpg|png|jpeg",
-                   'encrypt_name'    => False, //
-                   'max_size'        => "50000",  // ukuran file gambar
-                   'max_height'      => "9680",
-                   'max_width'       => "9024"
-                 );
-      $this->load->library('upload',$config);
-      $this->upload->initialize($config);
+      'upload_path'     => "./assets/upload/user/img/",
+      'allowed_types'   => "gif|jpg|png|jpeg",
+      'encrypt_name'    => False, //
+      'max_size'        => "50000",  // ukuran file gambar
+      'max_height'      => "9680",
+      'max_width'       => "9024"
+    );
+    $this->load->library('upload', $config);
+    $this->upload->initialize($config);
 
-      if( ! $this->upload->do_upload('userpicture'))
-      {
-        $this->session->set_flashdata('msg_error_gambar', $this->upload->display_errors());
-        $this->load->view('admin/profile',$data);
-      }else{
-        $upload_data = $this->upload->data();
-        $nama_file = $upload_data['file_name'];
-        $ukuran_file = $upload_data['file_size'];
+    if (!$this->upload->do_upload('userpicture')) {
+      $this->session->set_flashdata('msg_error_gambar', $this->upload->display_errors());
+      $this->load->view('admin/profile', $data);
+    } else {
+      $upload_data = $this->upload->data();
+      $nama_file = $upload_data['file_name'];
+      $ukuran_file = $upload_data['file_size'];
 
-        //resize img + thumb Img -- Optional
-        $config['image_library']     = 'gd2';
-				$config['source_image']      = $upload_data['full_path'];
-				$config['create_thumb']      = FALSE;
-				$config['maintain_ratio']    = TRUE;
-				$config['width']             = 150;
-				$config['height']            = 150;
+      //resize img + thumb Img -- Optional
+      $config['image_library']     = 'gd2';
+      $config['source_image']      = $upload_data['full_path'];
+      $config['create_thumb']      = FALSE;
+      $config['maintain_ratio']    = TRUE;
+      $config['width']             = 150;
+      $config['height']            = 150;
 
-        $this->load->library('image_lib', $config);
-        $this->image_lib->initialize($config);
-				if (!$this->image_lib->resize())
-        {
-          $data['pesan_error'] = $this->image_lib->display_errors();
-          $this->load->view('admin/profile',$data);
-        }
-
-        $where = array(
-                'username_user' => $this->session->userdata('name')
-        );
-
-        $data = array(
-                'nama_file' => $nama_file,
-                'ukuran_file' => $ukuran_file
-        );
-
-        $this->M_admin->update('tb_upload_gambar_user',$data,$where);
-        $this->session->set_flashdata('msg_berhasil_gambar','Gambar Berhasil Di Upload');
-        redirect(base_url('admin/profile'));
+      $this->load->library('image_lib', $config);
+      $this->image_lib->initialize($config);
+      if (!$this->image_lib->resize()) {
+        $data['pesan_error'] = $this->image_lib->display_errors();
+        $this->load->view('admin/profile', $data);
       }
+
+      $where = array(
+        'username_user' => $this->session->userdata('name')
+      );
+
+      $data = array(
+        'nama_file' => $nama_file,
+        'ukuran_file' => $ukuran_file
+      );
+
+      $this->M_admin->update('tb_upload_gambar_user', $data, $where);
+      $this->session->set_flashdata('msg_berhasil_gambar', 'Gambar Berhasil Di Upload');
+      redirect(base_url('admin/profile'));
+    }
   }
 
   ####################################
-           // End Profile
+  // End Profile
   ####################################
 
 
 
   ####################################
-              // Users
+  // Users
   ####################################
   public function users()
   {
-    $data['list_users'] = $this->M_admin->kecuali('user',$this->session->userdata('name'));
+    $data['list_users'] = $this->M_admin->kecuali('user', $this->session->userdata('name'));
     $data['token_generate'] = $this->token_generate();
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
     $this->session->set_userdata($data);
-    $this->load->view('admin/users',$data);
+    $this->load->view('admin/users', $data);
   }
 
   public function form_user()
   {
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
     $data['token_generate'] = $this->token_generate();
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
     $this->session->set_userdata($data);
-    $this->load->view('admin/form_users/form_insert',$data);
+    $this->load->view('admin/form_users/form_insert', $data);
   }
 
   public function update_user()
@@ -168,199 +168,192 @@ class Admin extends CI_Controller{
     $id = $this->uri->segment(3);
     $where = array('id' => $id);
     $data['token_generate'] = $this->token_generate();
-    $data['list_data'] = $this->M_admin->get_data('user',$where);
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
+    $data['list_data'] = $this->M_admin->get_data('user', $where);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
     $this->session->set_userdata($data);
-    $this->load->view('admin/form_users/form_update',$data);
+    $this->load->view('admin/form_users/form_update', $data);
   }
 
   public function proses_delete_user()
   {
     $id = $this->uri->segment(3);
     $where = array('id' => $id);
-    $this->M_admin->delete('user',$where);
-    $this->session->set_flashdata('msg_berhasil','User Behasil Di Delete');
+    $this->M_admin->delete('user', $where);
+    $this->session->set_flashdata('msg_berhasil', 'User Behasil Di Delete');
     redirect(base_url('admin/users'));
-
   }
 
   public function proses_tambah_user()
   {
-    $this->form_validation->set_rules('username','Username','required');
-    $this->form_validation->set_rules('email','Email','required|valid_email');
-    $this->form_validation->set_rules('password','Password','required');
-    $this->form_validation->set_rules('confirm_password','Confirm password','required|matches[password]');
+    $this->form_validation->set_rules('username', 'Username', 'required');
+    $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+    $this->form_validation->set_rules('password', 'Password', 'required');
+    $this->form_validation->set_rules('confirm_password', 'Confirm password', 'required|matches[password]');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      if($this->session->userdata('token_generate') === $this->input->post('token'))
-      {
+    if ($this->form_validation->run() == TRUE) {
+      if ($this->session->userdata('token_generate') === $this->input->post('token')) {
 
-        $username     = $this->input->post('username',TRUE);
-        $email        = $this->input->post('email',TRUE);
-        $password     = $this->input->post('password',TRUE);
-        $role         = $this->input->post('role',TRUE);
+        $username     = $this->input->post('username', TRUE);
+        $email        = $this->input->post('email', TRUE);
+        $password     = $this->input->post('password', TRUE);
+        $role         = $this->input->post('role', TRUE);
 
         $data = array(
-              'username'     => $username,
-              'email'        => $email,
-              'password'     => $this->hash_password($password),
-              'role'         => $role,
+          'username'     => $username,
+          'email'        => $email,
+          'password'     => $this->hash_password($password),
+          'role'         => $role,
         );
-        $this->M_admin->insert('user',$data);
+        $this->M_admin->insert('user', $data);
 
-        $this->session->set_flashdata('msg_berhasil','User Berhasil Ditambahkan');
+        $this->session->set_flashdata('msg_berhasil', 'User Berhasil Ditambahkan');
         redirect(base_url('admin/form_user'));
-        }
-      }else {
-        $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-        $this->load->view('admin/form_users/form_insert',$data);
+      }
+    } else {
+      $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+      $this->load->view('admin/form_users/form_insert', $data);
     }
   }
 
   public function proses_update_user()
   {
-    $this->form_validation->set_rules('username','Username','required');
-    $this->form_validation->set_rules('email','Email','required|valid_email');
+    $this->form_validation->set_rules('username', 'Username', 'required');
+    $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
 
-    
-    if($this->form_validation->run() == TRUE)
-    {
-      if($this->session->userdata('token_generate') === $this->input->post('token'))
-      {
-        $id           = $this->input->post('id',TRUE);        
-        $username     = $this->input->post('username',TRUE);
-        $email        = $this->input->post('email',TRUE);
-        $role         = $this->input->post('role',TRUE);
+
+    if ($this->form_validation->run() == TRUE) {
+      if ($this->session->userdata('token_generate') === $this->input->post('token')) {
+        $id           = $this->input->post('id', TRUE);
+        $username     = $this->input->post('username', TRUE);
+        $email        = $this->input->post('email', TRUE);
+        $role         = $this->input->post('role', TRUE);
 
         $where = array('id' => $id);
         $data = array(
-              'username'     => $username,
-              'email'        => $email,
-              'role'         => $role,
+          'username'     => $username,
+          'email'        => $email,
+          'role'         => $role,
         );
-        $this->M_admin->update('user',$data,$where);
-        $this->session->set_flashdata('msg_berhasil','Data User Berhasil Diupdate');
+        $this->M_admin->update('user', $data, $where);
+        $this->session->set_flashdata('msg_berhasil', 'Data User Berhasil Diupdate');
         redirect(base_url('admin/users'));
-       }
-    }else{
-        $this->load->view('admin/form_users/form_update');
+      }
+    } else {
+      $this->load->view('admin/form_users/form_update');
     }
   }
 
 
   ####################################
-           // End Users
+  // End Users
   ####################################
 
 
   ####################################
-    // DATA TABLE MP
+  // DATA TABLE MP
   ####################################
   public function proses_data_mp()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->insert('tb_mp',$data);
+      $this->M_admin->insert('tb_mp', $data);
 
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Ditambahkan');
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Ditambahkan');
       redirect(base_url('admin/form_mp'));
-    }else {
+    } else {
       $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-      $this->load->view('admin/form_barangmasuk/input_mp',$data);
+      $this->load->view('admin/form_barangmasuk/input_mp', $data);
     }
   }
 
   public function form_mp()
   {
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/input_mp',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/input_mp', $data);
   }
 
   public function tabel_mp()
   {
     $data = array(
-              'list_mp' => $this->M_admin->select('tb_mp'),
-              'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'))
-            );
-    $this->load->view('admin/tabel/tabel_mp',$data);
+      'list_mp' => $this->M_admin->select('tb_mp'),
+      'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'))
+    );
+    $this->load->view('admin/tabel/tabel_mp', $data);
   }
 
   public function update_mp($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $data['update_data_mp'] = $this->M_admin->get_data('tb_mp',$where);
+    $data['update_data_mp'] = $this->M_admin->get_data('tb_mp', $where);
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/update_mp',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/update_mp', $data);
   }
 
   public function proses_update_mp()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $where = array('id_transaksi' => $id_transaksi);
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->update('tb_mp',$data,$where);
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Diupdate');
+      $this->M_admin->update('tb_mp', $data, $where);
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Diupdate');
       redirect(base_url('admin/tabel_mp'));
-    }else{
+    } else {
       $this->load->view('admin/form_barangmasuk/update_mp');
     }
   }
@@ -368,131 +361,129 @@ class Admin extends CI_Controller{
   public function delete_mp($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $this->M_admin->delete('tb_mp',$where);
+    $this->M_admin->delete('tb_mp', $where);
 
-    $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Dihapus');
+    $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Dihapus');
     redirect(base_url('admin/tabel_mp'));
   }
 
   public function cetak_mp()
-        {
-            $data['brgmp'] = $this->M_Admin->cetak_mp();
-            $this->load->view('admin/tabel/tabel_mp', $data);
-    }  
+  {
+    $data['brgmp'] = $this->M_Admin->cetak_mp();
+    $this->load->view('admin/tabel/tabel_mp', $data);
+  }
 
 
 
   ####################################
-    // END DATA RUANGAN MP
+  // END DATA RUANGAN MP
   ####################################
 
   ####################################
-    // DATA TABEL RUANGAN PRO 1
+  // DATA TABEL RUANGAN PRO 1
   ####################################
   public function proses_data_pro1()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->insert('tb_pro1',$data);
+      $this->M_admin->insert('tb_pro1', $data);
 
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Ditambahkan');
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Ditambahkan');
       redirect(base_url('admin/form_pro1'));
-    }else {
+    } else {
       $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-      $this->load->view('admin/form_barangmasuk/input_mp',$data);
+      $this->load->view('admin/form_barangmasuk/input_mp', $data);
     }
   }
 
   public function form_pro1()
   {
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/input_pro1',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/input_pro1', $data);
   }
 
   public function tabel_pro1()
   {
     $data = array(
-              'list_pro1' => $this->M_admin->select('tb_pro1'),
-              'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'))
-            );
-    $this->load->view('admin/tabel/tabel_pro1',$data);
+      'list_pro1' => $this->M_admin->select('tb_pro1'),
+      'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'))
+    );
+    $this->load->view('admin/tabel/tabel_pro1', $data);
   }
 
   public function update_pro1($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $data['update_data_pro1'] = $this->M_admin->get_data('tb_pro1',$where);
+    $data['update_data_pro1'] = $this->M_admin->get_data('tb_pro1', $where);
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/update_pro1',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/update_pro1', $data);
   }
 
   public function proses_update_pro1()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $where = array('id_transaksi' => $id_transaksi);
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->update('tb_pro1',$data,$where);
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Diupdate');
+      $this->M_admin->update('tb_pro1', $data, $where);
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Diupdate');
       redirect(base_url('admin/tabel_pro1'));
-    }else{
+    } else {
       $this->load->view('admin/form_barangmasuk/update_pro1');
     }
   }
@@ -500,9 +491,9 @@ class Admin extends CI_Controller{
   public function delete_pro1($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $this->M_admin->delete('tb_pro1',$where);
+    $this->M_admin->delete('tb_pro1', $where);
 
-    $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Dihapus');
+    $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Dihapus');
     redirect(base_url('admin/tabel_pro1'));
   }
 
@@ -510,116 +501,114 @@ class Admin extends CI_Controller{
 
 
   ####################################
-    // END DATA RUANGAN PRO 1
+  // END DATA RUANGAN PRO 1
   ####################################
 
   ####################################
-    // DATA TABEL RUANGAN REKAMAN
+  // DATA TABEL RUANGAN REKAMAN
   ####################################
   public function proses_data_rekaman()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->insert('tb_rekaman',$data);
+      $this->M_admin->insert('tb_rekaman', $data);
 
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Ditambahkan');
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Ditambahkan');
       redirect(base_url('admin/form_rekaman'));
-    }else {
+    } else {
       $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-      $this->load->view('admin/form_barangmasuk/input_rekaman',$data);
+      $this->load->view('admin/form_barangmasuk/input_rekaman', $data);
     }
   }
 
   public function form_rekaman()
   {
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/input_rekaman',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/input_rekaman', $data);
   }
 
   public function tabel_rekaman()
   {
     $data = array(
-              'list_rekaman' => $this->M_admin->select('tb_rekaman'),
-              'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'))
-            );
-    $this->load->view('admin/tabel/tabel_rekaman',$data);
+      'list_rekaman' => $this->M_admin->select('tb_rekaman'),
+      'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'))
+    );
+    $this->load->view('admin/tabel/tabel_rekaman', $data);
   }
 
   public function update_rekaman($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $data['update_data_rekaman'] = $this->M_admin->get_data('tb_rekaman',$where);
+    $data['update_data_rekaman'] = $this->M_admin->get_data('tb_rekaman', $where);
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/update_rekaman',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/update_rekaman', $data);
   }
 
   public function proses_update_rekaman()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $where = array('id_transaksi' => $id_transaksi);
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->update('tb_rekaman',$data,$where);
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Diupdate');
+      $this->M_admin->update('tb_rekaman', $data, $where);
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Diupdate');
       redirect(base_url('admin/tabel_rekaman'));
-    }else{
+    } else {
       $this->load->view('admin/form_barangmasuk/update_rekaman');
     }
   }
@@ -627,123 +616,121 @@ class Admin extends CI_Controller{
   public function delete_rekaman($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $this->M_admin->delete('tb_rekaman',$where);
+    $this->M_admin->delete('tb_rekaman', $where);
 
-    $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Dihapus');
+    $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Dihapus');
     redirect(base_url('admin/tabel_rekaman'));
   }
 
   ####################################
-    // END DATA RUANGAN REKEMAN
+  // END DATA RUANGAN REKEMAN
   ####################################
 
-   ####################################
-    // DATA TABEL RRI PRO 2
+  ####################################
+  // DATA TABEL RRI PRO 2
   ####################################
   public function proses_data_pro2()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->insert('tb_pro2',$data);
+      $this->M_admin->insert('tb_pro2', $data);
 
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Ditambahkan');
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Ditambahkan');
       redirect(base_url('admin/form_pro2'));
-    }else {
+    } else {
       $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-      $this->load->view('admin/form_barangmasuk/input_pro2',$data);
+      $this->load->view('admin/form_barangmasuk/input_pro2', $data);
     }
   }
 
   public function form_pro2()
   {
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/input_pro2',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/input_pro2', $data);
   }
 
   public function tabel_pro2()
   {
     $data = array(
-              'list_pro2' => $this->M_admin->select('tb_pro2'),
-              'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'))
-            );
-    $this->load->view('admin/tabel/tabel_pro2',$data);
+      'list_pro2' => $this->M_admin->select('tb_pro2'),
+      'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'))
+    );
+    $this->load->view('admin/tabel/tabel_pro2', $data);
   }
 
   public function update_pro2($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $data['update_data_pro2'] = $this->M_admin->get_data('tb_pro2',$where);
+    $data['update_data_pro2'] = $this->M_admin->get_data('tb_pro2', $where);
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/update_pro2',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/update_pro2', $data);
   }
 
   public function proses_update_pro2()
   {
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $where = array('id_transaksi' => $id_transaksi);
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->update('tb_pro2',$data,$where);
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Diupdate');
+      $this->M_admin->update('tb_pro2', $data, $where);
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Diupdate');
       redirect(base_url('admin/tabel_pro2'));
-    }else{
+    } else {
       $this->load->view('admin/form_barangmasuk/update_pro2');
     }
   }
@@ -751,302 +738,293 @@ class Admin extends CI_Controller{
   public function delete_pro2($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $this->M_admin->delete('tb_pro2',$where);
+    $this->M_admin->delete('tb_pro2', $where);
 
-    $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Dihapus');
+    $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Dihapus');
     redirect(base_url('admin/tabel_pro2'));
   }
 
   ####################################
-    // END DATA RRI PRO 2
+  // END DATA RRI PRO 2
   ####################################
 
 
   ####################################
-        // DATA BARANG MASUK
+  // DATA BARANG MASUK
   ####################################
 
   public function form_barangmasuk()
   {
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/input_barang',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/input_barang', $data);
   }
 
   public function tabel_barangmasuk()
   {
     $data = array(
-              'list_data' => $this->M_admin->select('tb_barang'),
-              'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'))
-            );
-    $this->load->view('admin/tabel/tabel_barangmasuk',$data);
+      'list_data' => $this->M_admin->select('tb_barang'),
+      'avatar'    => $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'))
+    );
+    $this->load->view('admin/tabel/tabel_barangmasuk', $data);
   }
 
   public function update_barang($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $data['data_barang_update'] = $this->M_admin->get_data('tb_barang',$where);
+    $data['data_barang_update'] = $this->M_admin->get_data('tb_barang', $where);
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_barangmasuk/form_update',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_barangmasuk/form_update', $data);
   }
 
   public function delete_barang($id_transaksi)
   {
     $where = array('id_transaksi' => $id_transaksi);
-    $this->M_admin->delete('tb_barang',$where);
+    $this->M_admin->delete('tb_barang', $where);
 
-    $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Dihapus');
+    $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Dihapus');
     redirect(base_url('admin/tabel_barangmasuk'));
   }
 
 
   public function proses_databarang_masuk_insert()
   {
-    $this->form_validation->set_rules('ruangan','ruangan','required');
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('ruangan', 'ruangan', 'required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $ruangan      = $this->input->post('ruangan',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $ruangan      = $this->input->post('ruangan', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'ruangan'         => $ruangan,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'ruangan'         => $ruangan,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->insert('tb_barang',$data);
+      $this->M_admin->insert('tb_barang', $data);
 
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Ditambahkan');
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Ditambahkan');
       redirect(base_url('admin/form_barangmasuk'));
-    }else {
+    } else {
       $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-      $this->load->view('admin/form_barangmasuk/form_insert',$data);
+      $this->load->view('admin/form_barangmasuk/form_insert', $data);
     }
   }
 
   public function proses_databarang_masuk_update()
   {
-    $this->form_validation->set_rules('ruangan','ruangan','required');
-    $this->form_validation->set_rules('nama_barang','Nama Barang','required');
-    $this->form_validation->set_rules('merk_barang','Merk Barang','required');
-    $this->form_validation->set_rules('satuan','Satuan Barang','required');
-    $this->form_validation->set_rules('jumlah','Jumlah','required');
+    $this->form_validation->set_rules('ruangan', 'ruangan', 'required');
+    $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required');
+    $this->form_validation->set_rules('merk_barang', 'Merk Barang', 'required');
+    $this->form_validation->set_rules('satuan', 'Satuan Barang', 'required');
+    $this->form_validation->set_rules('jumlah', 'Jumlah', 'required');
 
-    if($this->form_validation->run() == TRUE)
-    {
-      $id_transaksi = $this->input->post('id_transaksi',TRUE);
-      $tanggal      = $this->input->post('tanggal',TRUE);
-      $ruangan      = $this->input->post('ruangan',TRUE);
-      $nama         = $this->input->post('nama_barang',TRUE);
-      $merk         = $this->input->post('merk_barang',TRUE);
-      $tipe         = $this->input->post('tipe_barang',TRUE);
-      $tahun        = $this->input->post('tahun_pengadaan',TRUE);
-      $keterangan   = $this->input->post('keterangan',TRUE);
-      $satuan       = $this->input->post('satuan',TRUE);
-      $jumlah       = $this->input->post('jumlah',TRUE);
-      $kondisi      = $this->input->post('kondisi_barang',TRUE);
+    if ($this->form_validation->run() == TRUE) {
+      $id_transaksi = $this->input->post('id_transaksi', TRUE);
+      $tanggal      = $this->input->post('tanggal', TRUE);
+      $ruangan      = $this->input->post('ruangan', TRUE);
+      $nama         = $this->input->post('nama_barang', TRUE);
+      $merk         = $this->input->post('merk_barang', TRUE);
+      $tipe         = $this->input->post('tipe_barang', TRUE);
+      $tahun        = $this->input->post('tahun_pengadaan', TRUE);
+      $keterangan   = $this->input->post('keterangan', TRUE);
+      $satuan       = $this->input->post('satuan', TRUE);
+      $jumlah       = $this->input->post('jumlah', TRUE);
+      $kondisi      = $this->input->post('kondisi_barang', TRUE);
 
       $where = array('id_transaksi' => $id_transaksi);
       $data = array(
-            'id_transaksi'    => $id_transaksi,
-            'tanggal'         => $tanggal,
-            'ruangan'         => $ruangan,
-            'nama_barang'     => $nama,
-            'merk_barang'     => $merk,
-            'tipe_barang'     => $tipe,
-            'tahun_pengadaan' => $tahun,
-            'keterangan'      => $keterangan,
-            'satuan'          => $satuan,
-            'jumlah'          => $jumlah,
-            'kondisi_barang'  => $kondisi
+        'id_transaksi'    => $id_transaksi,
+        'tanggal'         => $tanggal,
+        'ruangan'         => $ruangan,
+        'nama_barang'     => $nama,
+        'merk_barang'     => $merk,
+        'tipe_barang'     => $tipe,
+        'tahun_pengadaan' => $tahun,
+        'keterangan'      => $keterangan,
+        'satuan'          => $satuan,
+        'jumlah'          => $jumlah,
+        'kondisi_barang'  => $kondisi
       );
-      $this->M_admin->update('tb_barang',$data,$where);
-      $this->session->set_flashdata('msg_berhasil','Data Barang Berhasil Diupdate');
+      $this->M_admin->update('tb_barang', $data, $where);
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Diupdate');
       redirect(base_url('admin/tabel_barangmasuk'));
-    }else{
+    } else {
       $this->load->view('admin/form_barangmasuk/form_update');
     }
   }
   ####################################
-      // END DATA BARANG MASUK
+  // END DATA BARANG MASUK
   ####################################
 
 
   ####################################
-              // SATUAN
+  // SATUAN
   ####################################
 
   public function form_satuan()
   {
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_satuan/form_insert',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_satuan/form_insert', $data);
   }
 
   public function tabel_satuan()
   {
     $data['list_data'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/tabel/tabel_satuan',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/tabel/tabel_satuan', $data);
   }
 
   public function update_satuan()
   {
     $uri = $this->uri->segment(3);
     $where = array('id_satuan' => $uri);
-    $data['data_satuan'] = $this->M_admin->get_data('tb_satuan',$where);
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/form_satuan/form_update',$data);
+    $data['data_satuan'] = $this->M_admin->get_data('tb_satuan', $where);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/form_satuan/form_update', $data);
   }
 
   public function delete_satuan()
   {
     $uri = $this->uri->segment(3);
     $where = array('id_satuan' => $uri);
-    $this->M_admin->delete('tb_satuan',$where);
+    $this->M_admin->delete('tb_satuan', $where);
     redirect(base_url('admin/tabel_satuan'));
   }
 
   public function proses_satuan_insert()
   {
-    $this->form_validation->set_rules('kode_satuan','Kode Satuan','trim|required|max_length[100]');
-    $this->form_validation->set_rules('nama_satuan','Nama Satuan','trim|required|max_length[100]');
+    $this->form_validation->set_rules('kode_satuan', 'Kode Satuan', 'trim|required|max_length[100]');
+    $this->form_validation->set_rules('nama_satuan', 'Nama Satuan', 'trim|required|max_length[100]');
 
-    if($this->form_validation->run() ==  TRUE)
-    {
-      $kode_satuan = $this->input->post('kode_satuan' ,TRUE);
-      $nama_satuan = $this->input->post('nama_satuan' ,TRUE);
+    if ($this->form_validation->run() ==  TRUE) {
+      $kode_satuan = $this->input->post('kode_satuan', TRUE);
+      $nama_satuan = $this->input->post('nama_satuan', TRUE);
 
       $data = array(
-            'kode_satuan' => $kode_satuan,
-            'nama_satuan' => $nama_satuan
+        'kode_satuan' => $kode_satuan,
+        'nama_satuan' => $nama_satuan
       );
-      $this->M_admin->insert('tb_satuan',$data);
+      $this->M_admin->insert('tb_satuan', $data);
 
-      $this->session->set_flashdata('msg_berhasil','Data satuan Berhasil Ditambahkan');
+      $this->session->set_flashdata('msg_berhasil', 'Data satuan Berhasil Ditambahkan');
       redirect(base_url('admin/form_satuan'));
-    }else {
+    } else {
       $this->load->view('admin/form_satuan/form_insert');
     }
   }
 
   public function proses_satuan_update()
   {
-    $this->form_validation->set_rules('kode_satuan','Kode Satuan','trim|required|max_length[100]');
-    $this->form_validation->set_rules('nama_satuan','Nama Satuan','trim|required|max_length[100]');
+    $this->form_validation->set_rules('kode_satuan', 'Kode Satuan', 'trim|required|max_length[100]');
+    $this->form_validation->set_rules('nama_satuan', 'Nama Satuan', 'trim|required|max_length[100]');
 
-    if($this->form_validation->run() ==  TRUE)
-    {
-      $id_satuan   = $this->input->post('id_satuan' ,TRUE);
-      $kode_satuan = $this->input->post('kode_satuan' ,TRUE);
-      $nama_satuan = $this->input->post('nama_satuan' ,TRUE);
+    if ($this->form_validation->run() ==  TRUE) {
+      $id_satuan   = $this->input->post('id_satuan', TRUE);
+      $kode_satuan = $this->input->post('kode_satuan', TRUE);
+      $nama_satuan = $this->input->post('nama_satuan', TRUE);
 
       $where = array(
-            'id_satuan' => $id_satuan
+        'id_satuan' => $id_satuan
       );
 
       $data = array(
-            'kode_satuan' => $kode_satuan,
-            'nama_satuan' => $nama_satuan
+        'kode_satuan' => $kode_satuan,
+        'nama_satuan' => $nama_satuan
       );
-      $this->M_admin->update('tb_satuan',$data,$where);
+      $this->M_admin->update('tb_satuan', $data, $where);
 
-      $this->session->set_flashdata('msg_berhasil','Data satuan Berhasil Di Update');
+      $this->session->set_flashdata('msg_berhasil', 'Data satuan Berhasil Di Update');
       redirect(base_url('admin/tabel_satuan'));
-    }else {
+    } else {
       $this->load->view('admin/form_satuan/form_update');
     }
   }
 
   ####################################
-            // END SATUAN
+  // END SATUAN
   ####################################
 
 
   ####################################
-     // DATA MASUK KE DATA KELUAR
+  // DATA MASUK KE DATA KELUAR
   ####################################
 
   public function barang_keluar()
   {
     $uri = $this->uri->segment(3);
-    $where = array( 'id_transaksi' => $uri);
-    $data['list_data'] = $this->M_admin->get_data('tb_barang',$where);
+    $where = array('id_transaksi' => $uri);
+    $data['list_data'] = $this->M_admin->get_data('tb_barang', $where);
     $data['list_satuan'] = $this->M_admin->select('tb_satuan');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/perpindahan_barang/form_update',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/perpindahan_barang/form_update', $data);
   }
 
   public function proses_data_keluar()
   {
-    $this->form_validation->set_rules('tanggal_keluar','Tanggal Keluar','trim|required');
-    if($this->form_validation->run() === TRUE)
-    {
-      $id_transaksi   = $this->input->post('id_transaksi',TRUE);
-      $tanggal_masuk  = $this->input->post('tanggal',TRUE);
-      $tanggal_keluar = $this->input->post('tanggal_keluar',TRUE);
-      $lokasi         = $this->input->post('lokasi',TRUE);
-      $kode_barang    = $this->input->post('kode_barang',TRUE);
-      $nama_barang    = $this->input->post('nama_barang',TRUE);
-      $satuan         = $this->input->post('satuan',TRUE);
-      $jumlah         = $this->input->post('jumlah',TRUE);
+    $this->form_validation->set_rules('tanggal_keluar', 'Tanggal Keluar', 'trim|required');
+    if ($this->form_validation->run() === TRUE) {
+      $id_transaksi   = $this->input->post('id_transaksi', TRUE);
+      $tanggal_masuk  = $this->input->post('tanggal', TRUE);
+      $tanggal_keluar = $this->input->post('tanggal_keluar', TRUE);
+      $lokasi         = $this->input->post('lokasi', TRUE);
+      $kode_barang    = $this->input->post('kode_barang', TRUE);
+      $nama_barang    = $this->input->post('nama_barang', TRUE);
+      $satuan         = $this->input->post('satuan', TRUE);
+      $jumlah         = $this->input->post('jumlah', TRUE);
 
-      $where = array( 'id_transaksi' => $id_transaksi);
+      $where = array('id_transaksi' => $id_transaksi);
       $data = array(
-              'id_transaksi' => $id_transaksi,
-              'tanggal_masuk' => $tanggal_masuk,
-              'tanggal_keluar' => $tanggal_keluar,
-              'lokasi' => $lokasi,
-              'kode_barang' => $kode_barang,
-              'nama_barang' => $nama_barang,
-              'satuan' => $satuan,
-              'jumlah' => $jumlah
+        'id_transaksi' => $id_transaksi,
+        'tanggal_masuk' => $tanggal_masuk,
+        'tanggal_keluar' => $tanggal_keluar,
+        'lokasi' => $lokasi,
+        'kode_barang' => $kode_barang,
+        'nama_barang' => $nama_barang,
+        'satuan' => $satuan,
+        'jumlah' => $jumlah
       );
-        $this->M_admin->insert('tb_barang_keluar',$data);
-        $this->session->set_flashdata('msg_berhasil_keluar','Data Berhasil Keluar');
-        redirect(base_url('admin/tabel_barangmasuk'));
-    }else {
-      $this->load->view('perpindahan_barang/form_update/'.$id_transaksi);
+      $this->M_admin->insert('tb_barang_keluar', $data);
+      $this->session->set_flashdata('msg_berhasil_keluar', 'Data Berhasil Keluar');
+      redirect(base_url('admin/tabel_barangmasuk'));
+    } else {
+      $this->load->view('perpindahan_barang/form_update/' . $id_transaksi);
     }
-
   }
   ####################################
-    // END DATA MASUK KE DATA KELUAR
+  // END DATA MASUK KE DATA KELUAR
   ####################################
 
 
   ####################################
-        // DATA BARANG KELUAR
+  // DATA BARANG KELUAR
   ####################################
 
   public function tabel_barangkeluar()
   {
     $data['list_data'] = $this->M_admin->select('tb_barang_keluar');
-    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
-    $this->load->view('admin/tabel/tabel_barangkeluar',$data);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/tabel/tabel_barangkeluar', $data);
   }
-
-
 }
-?>

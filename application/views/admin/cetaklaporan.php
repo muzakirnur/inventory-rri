@@ -1,55 +1,90 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-class cetaklaporan extends CI_Controller {
+<!DOCTYPE html>
+<html lang="en">
 
-  function index(){
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Innventory RRI | Cetak Laporan</title>
+  <!-- <link rel="stylesheet" href="/assets/css/bootstrap.min.css" /> -->
+  <link rel="stylesheet" href="<?php echo base_url() ?>assets/web_admin/bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="<?php echo base_url() ?>assets/web_admin/bower_components/font-awesome/css/font-awesome.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="<?php echo base_url() ?>assets/web_admin/bower_components/Ionicons/css/ionicons.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="<?php echo base_url() ?>assets/web_admin/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="<?php echo base_url() ?>assets/web_admin/dist/css/AdminLTE.min.css">
 
-            $pdf = new Pdf('P', 'mm', 'A4', true, 'UTF-8', false);
-            $pdf->SetTitle('Daftar Produk');
-            $pdf->SetHeaderMargin(30);
-            $pdf->SetTopMargin(20);
-            $pdf->setFooterMargin(20);
-            $pdf->SetAutoPageBreak(true);
-            $pdf->SetAuthor('Author');
-            $pdf->SetDisplayMode('real', 'default');
-            $pdf->AddPage();
-            $no=0;
-            $html='<h3>Daftar Produk</h3>
-            <table border="1">
+  <link rel="stylesheet" href="<?php echo base_url() ?>assets/sweetalert/dist/sweetalert.css">
+  <!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+  <link rel="stylesheet" href="<?php echo base_url() ?>assets/web_admin/dist/css/skins/_all-skins.min.css">
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-body">
+        <table class="table table-bordered table-striped text-center">
+          <thead>
+            <p>Ruangan : <?= $ruangan ?></p>
+            <p>Tanggal : <?= date('d-m-Y') ?></p>
+            <tr class="bg-primary">
+              <th scope="col">No</th>
+              <th scope="col">ID Transaksi</th>
+              <th scope="col">Tanggal</th>
+              <th scope="col">Nama Barang</th>
+              <th scope="col">Merk</th>
+              <th scope="col">Tipe</th>
+              <th scope="col">Tahun Pengadaan</th>
+              <th scope="col">Keterangan</th>
+              <th scope="col">Satuan</th>
+              <th scope="col">Jumlah</th>
+              <th scope="col">Kondisi</th>
+            </tr>
+          </thead>
+          <tbody>
             <tr>
-              <th style="width:40px" align="center">No</th>
-              <th style="width:110px" align="center">ID Transaksi</th>
-              <th style="width:110px" align="center">Tanggal</th>
-              <th style="width:110px" align="center">Nama Barang</th>
-              <th style="width:130px" align="center">Merk</th>
-              <th style="width:140px" align="center">Tipe</th>
-              <th style="width:140px" align="center">Tahun Pengadaan</th>
-              <th style="width:80px" align="center">Jumlah</th>
-              <th style="width:80px" align="center">Kondisi</th>
-            </tr>';
+              <?php if (is_array($brgpro2)) { ?>
+                <?php $no = 1; ?>
+                <?php foreach ($brgpro2 as $row) : ?>
+                  <td><?= $no ?></td>
+                  <td><?= $row->id_transaksi ?></td>
+                  <td><?= $row->tanggal ?></td>
+                  <td><?= $row->nama_barang ?></td>
+                  <td><?= $row->merk_barang ?></td>
+                  <td><?= $row->tipe_barang ?></td>
+                  <td><?= $row->tahun_pengadaan ?></td>
+                  <td><?= $row->keterangan ?></td>
+                  <td><?= $row->satuan ?></td>
+                  <td><?= $row->jumlah ?></td>
+                  <td><?= $row->kondisi_barang ?></td>
+            </tr>
+            <?php $no++; ?>
+          <?php endforeach; ?>
+        <?php } else { ?>
+          <td colspan="7" align="center"><strong>Data Kosong</strong></td>
+        <?php } ?>
+          </tbody>
+        </table><br>
+        <div class="section mt-3 text-right" style="position: absolute;right:7%;transform: translateX(-7%);">
+          <p>Lhokseumawe, <?= date('d-m-Y') ?></p>
+          <span>Mengetahui,</span>
+          <br><br>
+          <br><br>
+          <p>NIP :</p>
+          <span>Penanggung Jawab</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    window.print()
+  </script>
 
-            foreach($brgpro2 as $d)
-          {
-            $no++;
-            $html .= '<tr>';
-            $html .= '<td align="center">'.$no.'</td>';
-            $html .= '<td align="center">'.$d->id_transaksi.'</td>';
-            $html .= '<td align="center">'.$d->tanggal.'</td>';
-            $html .= '<td align="center">'.$d->nama_barang.'</td>';
-            $html .= '<td align="center">'.$d->merk_barang.'</td>';
-            $html .= '<td align="center">'.$d->tipe_barang.'</td>';
-            $html .= '<td align="center">'.$d->tahun_pengadaan.'</td>';
-            $html .= '<td align="center">'.$d->jumlah.'</td>';
-            $html .= '<td align="center">'.$d->kondisi_barang.'</td>';
-            $html .= '</tr>';
-          }
-          $html .='
-          </table>
-          <br>
-          <h5 align="right">Mengetahui</h5><br>
-          <h5 align="right">Penanggung Jawab</h5>
-        </div>';
-            $pdf->writeHTML($html, true, false, true, false, '');
-            $pdf->Output('laporanPro2.pdf', 'I');
-        }
-      }
+</body>
+
+</html>

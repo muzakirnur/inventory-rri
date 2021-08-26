@@ -12,10 +12,17 @@ class User extends CI_Controller
 
   public function index()
   {
+    $data['list_rekaman'] = $this->M_user->select('tb_mp');
+    $data['list_pro1'] = $this->M_user->select('tb_mp');
+    $data['list_pro2'] = $this->M_user->select('tb_mp');
+    $data['list_mp'] = $this->M_user->select('tb_mp');
+    $data['stokPro1'] = $this->M_user->sum('tb_pro1', 'jumlah');
+    $data['stokPro2'] = $this->M_user->sum('tb_pro2', 'jumlah');
+    $data['stokMP'] = $this->M_user->sum('tb_mp', 'jumlah');
+    $data['stokRekaman'] = $this->M_user->sum('tb_rekaman', 'jumlah');
     if ($this->session->userdata('status') == 'login' && $this->session->userdata('role') == 0) {
-      $this->load->view('user/templates/sidebar.php');
       $this->load->view('user/templates/header.php');
-      $this->load->view('user/index');
+      $this->load->view('user/index', $data);
       $this->load->view('user/templates/footer.php');
     } else {
       $this->load->view('login/login');

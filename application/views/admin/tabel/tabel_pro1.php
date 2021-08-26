@@ -41,9 +41,9 @@
       <!-- Logo -->
       <a href="<?php echo base_url('admin') ?>" class="logo">
         <!-- mini logo for sidebar mini 50x50 pixels -->
-        <span class="logo-mini"><b>RRI</b></span>
+        <span class="logo-mini"><b><img src="<?php echo base_url() ?>assets/upload/rri.png" alt="Inventory RRI" style="width: 50px;"></b></span>
         <!-- logo for regular state and mobile devices -->
-        <span class="logo-lg"><b>Inventory </b>RRI</span>
+        <span class="logo-lg"><b><img src="<?php echo base_url() ?>assets/upload/rri.png" alt="Inventory RRI" style="width: 50px;margin-right:5px">Inventory </b>RRI</span>
       </a>
       <!-- Header Navbar: style can be found in header.less -->
       <nav class="navbar navbar-static-top">

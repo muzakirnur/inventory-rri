@@ -13,6 +13,12 @@ class M_user extends CI_Model{
                     ->from($tabel)
                     ->get()->result();
   }
-}
 
- ?>
+  public function sum($tabel,$field)
+  {
+    $query = $this->db->select_sum($field)
+                      ->from($tabel)
+                      ->get();
+    return $query->result();
+  }
+}

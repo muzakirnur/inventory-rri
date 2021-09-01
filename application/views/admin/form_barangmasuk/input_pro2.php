@@ -205,6 +205,7 @@
                       <div class="alert alert-success alert-dismissible" style="width:91%">
                         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                         <strong>Success!</strong><br> <?php echo $this->session->flashdata('msg_berhasil'); ?>
+                        <a type="button" class="btn btn-success btn-outline-secondary btn-bg-gradient-success" style="width:14%;margin-left:80%;text-decoration:none" href="<?= base_url('admin/tabel_pro2') ?>" name="btn_listbarang"><i class="fa fa-list" aria-hidden="true"></i> Lihat List Barang</a>
                       </div>
                     <?php } ?>
 
@@ -266,13 +267,12 @@
                         </select>
                       </div>
                       <div class="form-group" style="display:inline-block;">
-                        <button type="reset" class="btn btn-basic" name="btn_reset" style="width:73%;margin-left:33px;"><i class="fa fa-eraser" aria-hidden="true"></i> Reset</button>
                       </div>
                       <!-- /.box-body -->
                       <div class="box-footer" style="width:93%;">
                         <a type="button" class="btn btn-default" style="width:10%;margin-right:26%" onclick="history.back(-1)" name="btn_kembali"><i class="fa fa-arrow-left" aria-hidden="true"></i> Kembali</a>
-                        <a type="button" class="btn btn-info" style="width:14%;margin-right:29%" href="<?= base_url('admin/tabel_pro2') ?>" name="btn_listbarang"><i class="fa fa-table" aria-hidden="true"></i> Lihat List Barang</a>
-                        <button type="submit" style="width:20%" class="btn btn-success"><i class="fa fa-check" aria-hidden="true"></i> Submit</button>
+                        <button type="reset" class="btn btn-default" name="btn_reset" style="width:14%;margin-right:29%"><i class="fa fa-eraser" aria-hidden="true"></i> Reset</button>
+                        <button type="submit" style="width:20%" class="btn btn-success align-content-end"><i class="fa fa-check" aria-hidden="true"></i> Submit</button>
                       </div>
                   </form>
                 </div>

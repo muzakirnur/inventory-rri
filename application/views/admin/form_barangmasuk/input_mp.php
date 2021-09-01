@@ -205,7 +205,7 @@
                       <div class="alert alert-success alert-dismissible" style="width:91%">
                         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                         <strong>Berhasil!</strong><br> <?php echo $this->session->flashdata('msg_berhasil'); ?>
-                        <a type="button" class="btn btn-info" style="width:14%;margin-left:80%" href="<?= base_url('admin/tabel_mp') ?>" name="btn_listbarang"><i class="fa fa-table" aria-hidden="true"></i> Lihat List Barang</a>
+                        <a type="button" class="btn btn-success btn-outline-secondary btn-bg-gradient-success" style="width:14%;margin-left:80%;text-decoration:none" href="<?= base_url('admin/tabel_mp') ?>" name="btn_listbarang"><i class="fa fa-list" aria-hidden="true"></i> Lihat List Barang</a>
                       </div>
                     <?php } ?>
 

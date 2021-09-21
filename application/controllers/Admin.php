@@ -85,7 +85,7 @@ class Admin extends CI_Controller
     }
   }
 
-  public function proses_gambar_upload()
+  public function proses_gambar_upload($data)
   {
     $config =  array(
       'upload_path'     => "./assets/upload/user/img/",
@@ -138,6 +138,85 @@ class Admin extends CI_Controller
 
   ####################################
   // End Profile
+  ####################################
+  
+
+  ####################################
+  // Start Penanggung Jawab
+  ####################################
+  
+  public function list_pj()
+  {
+    $data['list_pj'] = $this->M_admin->select('tb_pj');
+    $data['token_generate'] = $this->token_generate();
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->session->set_userdata($data);
+    $this->load->view('admin/pj/list_pj',$data);
+  }
+
+  public function insert_pj()
+  {
+    $data['token_generate'] = $this->token_generate();
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user',$this->session->userdata('name'));
+    $this->session->set_userdata($data);
+    $this->load->view('admin/pj/insert_pj',$data);
+  }
+
+  public function proses_data_pj()
+  {
+    $this->form_validation->set_rules('nama', 'Nama Penanggung Jawab', 'required');
+    $this->form_validation->set_rules('nip', 'NIP Penanggung Jawab', 'required');
+
+    if ($this->form_validation->run() == TRUE) {
+      $nama = $this->input->post('nama', TRUE);
+      $nip      = $this->input->post('nip', TRUE);
+
+      $data = array(
+        'nama'    => $nama,
+        'nip'         => $nip
+      );
+      $this->M_admin->insert('tb_pj', $data);
+
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Ditambahkan');
+      redirect(base_url('admin/list_pj'));
+    } else {
+      $data['list_pj'] = $this->M_admin->select('tb_pj');
+      $this->load->view('admin/pj/list_pj', $data);
+    }
+  }
+
+  public function update_pj($nip)
+  {
+    $where = array('nip' => $nip);
+    $data['update_data_pj'] = $this->M_admin->get_data('tb_pj', $where);
+    $data['avatar'] = $this->M_admin->get_data_gambar('tb_upload_gambar_user', $this->session->userdata('name'));
+    $this->load->view('admin/pj/update_pj', $data);
+  }
+
+  public function proses_update_pj($nip)
+  {
+    $this->form_validation->set_rules('nama', 'Nama Penanggung Jawab', 'required');
+    $this->form_validation->set_rules('nip', 'NIP Penanggung Jawab', 'required');
+
+    if ($this->form_validation->run() == TRUE) {
+      $nama = $this->input->post('nama', TRUE);
+      $nip      = $this->input->post('nip', TRUE);
+
+      $where = array('nip' => $nip);
+      $data = array(
+        'nama'    => $nama,
+        'nip'         => $nip
+      );
+      $this->M_admin->update('tb_pj', $data, $where);
+      $this->session->set_flashdata('msg_berhasil', 'Data Barang Berhasil Diupdate');
+      redirect(base_url('admin/list_pj'));
+    } else {
+      $this->load->view('admin/pj/update_pj');
+    }
+  }
+
+  ####################################
+  // Start Penanggung Jawab
   ####################################
 
 
@@ -981,7 +1060,7 @@ class Admin extends CI_Controller
     $this->load->view('admin/perpindahan_barang/form_update', $data);
   }
 
-  public function proses_data_keluar()
+  public function proses_data_keluar($id_transaksi)
   {
     $this->form_validation->set_rules('tanggal_keluar', 'Tanggal Keluar', 'trim|required');
     if ($this->form_validation->run() === TRUE) {
